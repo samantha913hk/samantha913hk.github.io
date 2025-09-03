@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HD Healthcare: Body Organization Quiz</title>
+    <style>
+        /* General Styling - Medical Theme */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #e0f7fa, #ffffff);
+            color: #01579b;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        #quiz-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 150, 136, 0.2);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            border: 2px solid #00897b;
+        }
+        h1, h2 {
+            color: #00796b;
+        }
+        /* Button Styling */
+        button {
+            background-color: #00897b; /* Medical teal green */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #00695c;
+            transform: scale(1.05);
+        }
+        #play-again-btn {
+            background-color: #d32f2f; /* Red for final action */
+        }
+        #play-again-btn:hover {
+            background-color: #b71c1c;
+        }
+        /* Option Button Styling */
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            margin: 8px 0;
+            padding: 12px;
+            background-color: #e0f2f1;
+            color: #004d40;
+            border: 1px solid #b2dfdb;
+            border-radius: 5px;
+        }
+        .option-btn:hover {
+            background-color: #b2dfdb;
+        }
+        .option-btn.correct {
+            background-color: #c8e6c9; /* Light green for correct */
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .option-btn.incorrect {
+            background-color: #ffcdd2; /* Light red for incorrect */
+            color: #c62828;
+            font-weight: bold;
+        }
+        /* Screen Styling */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        /* Progress and Score */
+        #progress, #score-display, #timer-display {
+            font-size: 18px;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #00897b;
+        }
+        #timer-display {
+            color: #d32f2f;
+        }
+        /* Question and Options */
+        #question-text {
+            font-size: 20px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        #options-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1>Human Body Organization Quiz</h1>
+            <p>Test your knowledge on the levels of organization, tissues, and organ systems! You have <strong>60 seconds</strong> per question.</p>
+            <button id="start-btn">Start Quiz</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="timer-display">Time left: 60s</div>
+            <div id="progress">Question: 1/15</div>
+            <div id="score-display">Score: 0</div>
+            <h2 id="question-text"></h2>
+            <div id="options-container"></div>
+            <button id="next-btn" style="display: none;">Next Question</button>
+        </div>
+
+        <!-- End Screen -->
+        <div id="end-screen" class="screen">
+            <h1>Quiz Complete!</h1>
+            <h2 id="final-score">Your final score: 0/150</h2>
+            <button id="play-again-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== QUIZ DATA =====
+        // The complete pool of 15 questions. The game will show all of them.
+        const questionPool = [
+            {
+                question: "What is the most basic unit of structure and function in the human body?",
+                options: ["The atom", "The molecule", "The cell", "The tissue"],
+                correctIndex: 2
+            },
+            {
+                question: "Which level of organization is characterized by a group of similar cells working together to perform a specific function?",
+                options: ["Organ level", "Tissue level", "Cellular level", "Chemical level"],
+                correctIndex: 1
+            },
+            {
+                question: "Putting the six levels of body organization in order from simplest to most complex, which level comes immediately after the 'Organ' level?",
+                options: ["Organism level", "Tissue level", "Cellular level", "Organ System level"],
+                correctIndex: 3
+            },
+            {
+                question: "The inner lining of the digestive tract and the epidermis of the skin are examples of which type of tissue?",
+                options: ["Connective tissue", "Epithelial tissue", "Muscle tissue", "Nervous tissue"],
+                correctIndex: 1
+            },
+            {
+                question: "Which of the following is NOT one of the four primary types of tissues in the human body?",
+                options: ["Epithelial tissue", "Nervous tissue", "Connective tissue", "Vascular tissue"],
+                correctIndex: 3
+            },
+            {
+                question: "A patient has damaged the tissue responsible for binding and supporting other tissues in their body. Which tissue type is most affected?",
+                options: ["Muscle tissue", "Connective tissue", "Epithelial tissue", "Nervous tissue"],
+                correctIndex: 1
+            },
+            {
+                question: "Which type of muscle tissue is characterized as being striated, branched, and uninucleated?",
+                options: ["Skeletal muscle", "Cardiac muscle", "Smooth muscle", "Visceral muscle"],
+                correctIndex: 1
+            },
+            {
+                question: "The pituitary gland, ovaries, and testes are key organs of which organ system?",
+                options: ["Reproductive system", "Endocrine system", "Lymphatic system", "Nervous system"],
+                correctIndex: 1
+            },
+            {
+                question: "The trachea, larynx, and lungs are the primary organs involved in which vital organ system?",
+                options: ["Cardiovascular system", "Digestive system", "Respiratory system", "Urinary system"],
+                correctIndex: 2
+            },
+            {
+                question: "Which organ system is primarily responsible for the drainage of tissue fluid and producing body immunity?",
+                options: ["Integumentary system", "Urinary system", "Cardiovascular system", "Lymphatic system"],
+                correctIndex: 3
+            },
+            {
+                question: "How many distinct organ systems are there in the human body, according to the lecture notes?",
+                options: ["9", "10", "11", "12"],
+                correctIndex: 2
+            },
+            {
+                question: "In anatomical terms, if a wound is described as 'superficial', where is it located?",
+                options: ["Away from the surface of the body", "Toward the midline of the body", "Toward the surface of the body", "Away from the head"],
+                correctIndex: 2
+            },
+            {
+                question: "The sternum (breastbone) is ________ to the heart.",
+                options: ["Anterior", "Posterior", "Superior", "Deep"],
+                correctIndex: 0
+            },
+            {
+                question: "A transverse plane divides the body into which portions?",
+                options: ["Anterior and posterior", "Right and left", "Superior and inferior", "Medial and lateral"],
+                correctIndex: 2
+            },
+            {
+                question: "In relation to the elbow, the wrist is considered:",
+                options: ["Proximal", "Distal", "Medial", "Superficial"],
+                correctIndex: 1
+            }
+        ];
+
+        // ===== GAME VARIABLES =====
+        let currentQuestions = []; // Will hold the full set of questions
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timer;
+        let timeLeft;
+        const TIME_PER_QUESTION = 60; // seconds
+
+        // ===== DOM ELEMENTS =====
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const progressText = document.getElementById('progress');
+        const scoreDisplay = document.getElementById('score-display');
+        const timerDisplay = document.getElementById('timer-display');
+        const finalScoreDisplay = document.getElementById('final-score');
+
+        // ===== EVENT LISTENERS =====
+        startBtn.addEventListener('click', startGame);
+        nextBtn.addEventListener('click', nextQuestion);
+        playAgainBtn.addEventListener('click', startGame);
+
+        // ===== MAIN FUNCTIONS =====
+
+        // Function to start or restart the game
+        function startGame() {
+            // 1. Hide start and end screens, show game screen
+            startScreen.classList.remove('active');
+            endScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+
+            // 2. Reset game state
+            score = 0;
+            currentQuestionIndex = 0;
+            scoreDisplay.textContent = `Score: ${score}`;
+
+            // 3. Use the ENTIRE question pool (all 15 questions)
+            currentQuestions = [...questionPool]; // Create a copy of the full pool
+
+            // 4. Load the first question
+            loadQuestion();
+        }
+
+        // Function to load the current question
+        function loadQuestion() {
+            // Reset the options container and hide the next button
+            optionsContainer.innerHTML = '';
+            nextBtn.style.display = 'none';
+
+            // Update progress text
+            progressText.textContent = `Question: ${currentQuestionIndex + 1}/${currentQuestions.length}`;
+
+            // Get the current question object
+            const currentQ = currentQuestions[currentQuestionIndex];
+
+            // Display the question text
+            questionText.textContent = currentQ.question;
+
+            // Create and display the option buttons
+            currentQ.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-btn');
+                button.addEventListener('click', () => checkAnswer(index));
+                optionsContainer.appendChild(button);
+            });
+
+            // Start the countdown timer for this question
+            startTimer();
+        }
+
+        // Function to check the selected answer
+        function checkAnswer(selectedIndex) {
+            // Stop the timer as soon as an answer is selected
+            clearInterval(timer);
+
+            const currentQ = currentQuestions[currentQuestionIndex];
+            const options = optionsContainer.getElementsByClassName('option-btn');
+
+            // Disable all buttons to prevent further selection
+            for (let btn of options) {
+                btn.disabled = true;
+            }
+
+            // Check if the selected answer is correct
+            if (selectedIndex === currentQ.correctIndex) {
+                // Correct answer
+                options[selectedIndex].classList.add('correct');
+                score += 10; // Award 10 points
+                scoreDisplay.textContent = `Score: ${score}`;
+            } else {
+                // Incorrect answer
+                options[selectedIndex].classList.add('incorrect');
+                // Also show the correct answer
+                options[currentQ.correctIndex].classList.add('correct');
+            }
+
+            // Show the "Next Question" button
+            nextBtn.style.display = 'block';
+        }
+
+        // Function to move to the next question or end the game
+        function nextQuestion() {
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < currentQuestions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // Function to end the game and show the final screen
+        function endGame() {
+            gameScreen.classList.remove('active');
+            endScreen.classList.add('active');
+            finalScoreDisplay.textContent = `Your final score: ${score}/${currentQuestions.length * 10}`;
+        }
+
+        // Function to start a countdown timer for the current question
+        function startTimer() {
+            timeLeft = TIME_PER_QUESTION;
+            timerDisplay.textContent = `Time left: ${timeLeft}s`;
+            timerDisplay.style.color = '#d32f2f'; // Reset to red
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Time left: ${timeLeft}s`;
+
+                // Change color to orange when time is running low
+                if (timeLeft <= 10) {
+                    timerDisplay.style.color = '#ff9800';
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timerDisplay.textContent = "Time's up!";
+                    // Automatically treat it as an incorrect answer and show the correct one
+                    const currentQ = currentQuestions[currentQuestionIndex];
+                    const options = optionsContainer.getElementsByClassName('option-btn');
+                    for (let btn of options) {
+                        btn.disabled = true;
+                    }
+                    options[currentQ.correctIndex].classList.add('correct');
+                    nextBtn.style.display = 'block';
+                }
+            }, 1000);
+        }
+
+    </script>
+</body>
+</html>
