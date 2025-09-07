@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardiovascular System Quiz</title>
+    <style>
+        /* General Styling - Heart & Blood Themed */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #f8d7da, #a83232);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        #quiz-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            width: 90%;
+            max-width: 650px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(170, 0, 0, 0.4);
+            border: 2px solid #d00;
+        }
+        h1 {
+            color: #a83232;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px #ccc;
+        }
+        .screen {
+            display: none;
+        }
+        #start-screen {
+            display: block;
+        }
+        button {
+            background: linear-gradient(to bottom, #a83232, #671717);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 15px;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            background: linear-gradient(to bottom, #c44, #8a2323);
+            transform: scale(1.05);
+        }
+        #options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .option-btn {
+            background: linear-gradient(to bottom, #f0f0f0, #ddd);
+            color: #333;
+            text-align: left;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            background: linear-gradient(to bottom, #e9e9e9, #d5d5d5);
+            transform: translateX(5px);
+        }
+        .option-btn.correct {
+            background: linear-gradient(to bottom, #d4edda, #a3d6b1);
+            color: #155724;
+            font-weight: bold;
+        }
+        .option-btn.incorrect {
+            background: linear-gradient(to bottom, #f8d7da, #f1b0b7);
+            color: #721c24;
+        }
+        #question-text {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        #timer, #score {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px;
+            color: #a83232;
+        }
+        #progress {
+            margin: 15px 0;
+            font-size: 16px;
+            color: #666;
+        }
+        #result {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .heart {
+            color: #d00;
+            font-size: 24px;
+            margin: 0 5px;
+        }
+        #time-remaining {
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <h1>Cardiovascular System Quiz</h1>
+            <p>Test your knowledge on the heart, blood vessels, and blood flow!<br><span class="heart">❤️</span></p>
+            <p>You will have <strong>60 seconds</strong> per question.</p>
+            <button id="start-btn">Start Quiz!</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="timer">Time left: <span id="time-remaining">60</span>s</div>
+            <div id="progress">Question <span id="question-number">1</span> of 15</div>
+            <div id="score">Score: <span id="current-score">0</span></div>
+            <div id="question-text"></div>
+            <div id="options-container"></div>
+        </div>
+
+        <!-- End Screen -->
+        <div id="end-screen" class="screen">
+            <h1>Quiz Complete! <span class="heart">❤️</span></h1>
+            <div id="result"></div>
+            <p>Your final score is: <strong><span id="final-score">0</span>/150</strong></p>
+            <button id="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== QUIZ DATA ==========
+        // All 15 questions from the pool for the Cardiovascular System
+        const quizQuestions = [
+            {
+                question: "What are the THREE main structures of the cardiovascular system?",
+                options: [
+                    "The heart, blood vessels, and blood.",
+                    "The lungs, liver, and kidneys.",
+                    "Arteries, veins, and capillaries.",
+                    "The atria, ventricles, and valves."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Where is the heart located in the thoracic cavity?",
+                options: [
+                    "Left of the midline, posterior to the sternum, resting on the diaphragm.",
+                    "Directly in the center of the chest.",
+                    "Right of the midline, beneath the lungs.",
+                    "Anterior to the sternum, above the diaphragm."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "What is the name of the double-layered sac that encloses the heart?",
+                options: [
+                    "The Pericardium.",
+                    "The Myocardium.",
+                    "The Endocardium.",
+                    "The Pleura."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "What is the function of the serous fluid within the pericardial cavity?",
+                options: [
+                    "To lubricate and minimize friction as the heart beats.",
+                    "To provide nutrients to the heart muscle.",
+                    "To carry oxygen to the pericardium.",
+                    "To remove waste products from the heart."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Which layer of the heart wall is the thick, muscular layer responsible for contraction?",
+                options: [
+                    "Myocardium.",
+                    "Epicardium.",
+                    "Endocardium.",
+                    "Pericardium."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Why is the myocardium of the left ventricle the thickest of all the heart chambers?",
+                options: [
+                    "It must generate enough force to pump blood throughout the entire body (systemic circuit).",
+                    "It has to pump blood a longer distance to the brain.",
+                    "It contains more valves than the other chambers.",
+                    "It pumps a greater volume of blood per beat than the right ventricle."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Which chamber of the heart receives deoxygenated blood from the body via the superior and inferior venae cavae?",
+                options: [
+                    "Right Atrium.",
+                    "Left Atrium.",
+                    "Right Ventricle.",
+                    "Left Ventricle."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Through which valve does blood pass when moving from the right atrium to the right ventricle?",
+                options: [
+                    "Tricuspid Valve.",
+                    "Bicuspid (Mitral) Valve.",
+                    "Pulmonary Valve.",
+                    "Aortic Valve."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Which blood vessels carry oxygenated blood from the lungs back to the heart?",
+                options: [
+                    "Pulmonary Veins.",
+                    "Pulmonary Arteries.",
+                    "Superior Vena Cava.",
+                    "Aorta."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "What is the name of the large artery that carries oxygenated blood out of the left ventricle to the body?",
+                options: [
+                    "Aorta.",
+                    "Pulmonary Artery.",
+                    "Pulmonary Vein.",
+                    "Coronary Artery."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "What is the function of the chordae tendineae and papillary muscles in the heart?",
+                options: [
+                    "To prevent the atrioventricular valves from flipping backwards into the atria during ventricular contraction.",
+                    "To open the semilunar valves.",
+                    "To generate electrical impulses for contraction.",
+                    "To separate the left and right sides of the heart."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "The natural pacemaker of the heart, which initiates each heartbeat, is called the:",
+                options: [
+                    "Sinoatrial (SA) Node.",
+                    "Atrioventricular (AV) Node.",
+                    "Bundle of His.",
+                    "Purkinje Fibers."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Which part of the heart's conduction system briefly delays the impulse to ensure the atria contract before the ventricles?",
+                options: [
+                    "Atrioventricular (AV) Node.",
+                    "Sinoatrial (SA) Node.",
+                    "Bundle Branches.",
+                    "Purkinje Fibers."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Which type of blood vessel is very thin-walled to allow for the exchange of gases, nutrients, and wastes?",
+                options: [
+                    "Capillaries.",
+                    "Arteries.",
+                    "Arterioles.",
+                    "Veins."
+                ],
+                correctIndex: 0
+            },
+            {
+                question: "Veins contain _____ to prevent the backflow of blood.",
+                options: [
+                    "Valves.",
+                    "Cusps.",
+                    "Septums.",
+                    "Nodes."
+                ],
+                correctIndex: 0
+            }
+        ];
+
+        // ========== GAME VARIABLES & ELEMENTS ==========
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        const timePerQuestion = 60;
+
+        // Get DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const timeRemainingEl = document.getElementById('time-remaining');
+        const questionNumberEl = document.getElementById('question-number');
+        const currentScoreEl = document.getElementById('current-score');
+        const finalScoreEl = document.getElementById('final-score');
+        const resultEl = document.getElementById('result');
+
+        // ========== GAME FUNCTIONS ==========
+
+        // Function to start the game
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            currentQuestionIndex = 0;
+            score = 0;
+            currentScoreEl.textContent = score;
+            loadQuestion();
+        }
+
+        // Function to load a question and its options
+        function loadQuestion() {
+            // Clear previous options and timer
+            clearInterval(timerInterval);
+            optionsContainer.innerHTML = '';
+            timeLeft = timePerQuestion;
+            timeRemainingEl.textContent = timeLeft;
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+
+            // Get the current question object
+            const currentQuestion = quizQuestions[currentQuestionIndex];
+            questionText.textContent = currentQuestion.question;
+
+            // Create buttons for each option
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-btn');
+                button.addEventListener('click', () => checkAnswer(index));
+                optionsContainer.appendChild(button);
+            });
+
+            // Start the countdown timer for this question
+            startTimer();
+        }
+
+        // Function to start the countdown timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeRemainingEl.textContent = timeLeft;
+
+                // If time runs out, move to the next question
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleAnswer(false); // Time's up, answer is wrong
+                }
+            }, 1000);
+        }
+
+        // Function to check the selected answer
+        function checkAnswer(selectedIndex) {
+            clearInterval(timerInterval); // Stop the timer
+            const correctIndex = quizQuestions[currentQuestionIndex].correctIndex;
+            const isCorrect = (selectedIndex === correctIndex);
+
+            // Visual feedback for correct/incorrect answer
+            const options = optionsContainer.children;
+            options[selectedIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
+            if (!isCorrect) {
+                options[correctIndex].classList.add('correct');
+            }
+
+            // Wait a moment for user to see feedback, then proceed
+            setTimeout(() => handleAnswer(isCorrect), 1500);
+        }
+
+        // Function to handle the result of an answer and move to next question or end game
+        function handleAnswer(isCorrect) {
+            if (isCorrect) {
+                score += 10; // Award 10 points for a correct answer
+                currentScoreEl.textContent = score;
+            }
+
+            // Move to next question or end the game
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // Function to end the game and show the final score
+        function endGame() {
+            gameScreen.style.display = 'none';
+            endScreen.style.display = 'block';
+            finalScoreEl.textContent = score;
+
+            // Display a message based on the score
+            if (score >= 130) {
+                resultEl.textContent = "Excellent! You're a Cardiovascular Expert! 🩺";
+                resultEl.style.color = '#155724';
+                resultEl.style.backgroundColor = '#d4edda';
+            } else if (score >= 100) {
+                resultEl.textContent = "Great Job! You know your heart! ❤️";
+                resultEl.style.color = '#0c5460';
+                resultEl.style.backgroundColor = '#d1ecf1';
+            } else if (score >= 70) {
+                resultEl.textContent = "Good effort! Keep studying! 📚";
+                resultEl.style.color = '#856404';
+                resultEl.style.backgroundColor = '#fff3cd';
+            } else {
+                resultEl.textContent = "Time to review the lecture slides! 💪";
+                resultEl.style.color = '#721c24';
+                resultEl.style.backgroundColor = '#f8d7da';
+            }
+        }
+
+        // ========== EVENT LISTENERS ==========
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+    </script>
+</body>
+</html>
